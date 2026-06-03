@@ -72,13 +72,14 @@ body {
   color: rgba(255,255,255,0.45);
   letter-spacing: .04em;
 }
-.header-badges { display: flex; gap: 6px; }
+.header-badges { display: flex; gap: 6px; flex-wrap: wrap; }
 .hbadge {
   padding: 3px 10px;
   border-radius: 99px;
   font-size: 11px;
   font-weight: 500;
   border: 1px solid;
+  white-space: nowrap;
 }
 .hbadge.solar  { color: #a8d47a; border-color: rgba(168,212,122,.4); }
 .hbadge.rateio { color: #7db8f7; border-color: rgba(125,184,247,.4); }
@@ -170,7 +171,7 @@ body {
   letter-spacing: -0.5px;
   margin-bottom: 4px;
 }
-.page-sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+.page-sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; line-height: 1.4; }
 
 /* ── KPI ROW ── */
 .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 24px; }
@@ -234,7 +235,8 @@ body {
 .ch-wrap { position: relative; width: 100%; }
 
 /* ── TABLE ── */
-.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table-responsive { width: 100%; overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 600px; }
 .tbl th {
   text-align: left; padding: 8px 10px;
   color: var(--muted); font-size: 10px; font-weight: 600;
@@ -249,7 +251,7 @@ body {
 .tbl .mono { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); }
 .pil {
   display: inline-block; padding: 2px 8px;
-  border-radius: 99px; font-size: 11px; font-weight: 600;
+  border-radius: 99px; font-size: 11px; font-weight: 600; white-space: nowrap;
 }
 .pil-g { background: var(--green-l); color: var(--green); }
 .pil-r { background: var(--red-l); color: var(--red); }
@@ -275,7 +277,6 @@ body {
 .alert.a-r { background: var(--red-l); border-color: var(--nc); }
 .alert.a-a { background: var(--amber-l); border-color: #ef9f27; }
 .alert.a-g { background: var(--green-l); border-color: var(--solar); }
-.alert-body {}
 .alert-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
 .alert.a-r .alert-title { color: var(--nc); }
 .alert.a-a .alert-title { color: var(--amber); }
@@ -306,12 +307,57 @@ body {
 .rb-val.accent { color: var(--accent); }
 .rb-sep { width: 1px; height: 40px; background: rgba(255,255,255,.15); }
 
-/* ── MOBILE FALLBACK ── */
-@media (max-width: 768px) {
-  .sidebar { display: none; }
+/* ── MOBILE RESPONSIVENESS ── */
+@media (max-width: 900px) {
   .kpi-row { grid-template-columns: 1fr 1fr; }
-  .g2,.g21,.g12 { grid-template-columns: 1fr; }
-  .main { padding: 16px; }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    height: auto;
+    padding: 16px;
+    gap: 12px;
+  }
+  .layout { flex-direction: column; }
+  
+  /* Transform Sidebar into horizontal scroll */
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 16px 0 0 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar-section {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 0 16px 12px 16px;
+    margin-bottom: 0;
+    scrollbar-width: none; /* Firefox */
+  }
+  .sidebar-section::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+  
+  .sidebar-label { display: none; }
+  .nav-item { width: auto; white-space: nowrap; padding: 10px 16px; }
+  .sidebar-stat { min-width: 160px; margin-bottom: 0; flex-shrink: 0; }
+  
+  .main { padding: 20px 16px; }
+  .g2, .g21, .g12, .g3 { grid-template-columns: 1fr; }
+  .card { padding: 16px; }
+  
+  .rateio-banner { flex-direction: column; align-items: flex-start; gap: 20px; }
+  .rb-sep { width: 100%; height: 1px; }
+}
+
+@media (max-width: 480px) {
+  .kpi-row { grid-template-columns: 1fr; }
+  .kpi-val { font-size: 22px; }
 }
 </style>
 </head>
@@ -330,7 +376,6 @@ body {
 </header>
 
 <div class="layout">
-  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-section">
       <div class="sidebar-label">Navegação</div>
@@ -370,10 +415,8 @@ body {
     </div>
   </aside>
 
-  <!-- MAIN -->
   <main class="main">
 
-    <!-- ═══════════ VISÃO GERAL ═══════════ -->
     <div class="panel active" id="panel-visao">
       <div class="page-title">Visão Geral</div>
       <div class="page-sub">Análise consolidada de energia elétrica · SESI + SENAI · 2023–2026 (2026: jan–mai)</div>
@@ -405,13 +448,13 @@ body {
         <div class="card">
           <div class="card-title"><span class="dot"></span>Gasto anual consolidado (R$ M)</div>
           <div class="ch-wrap" style="height:210px">
-            <canvas id="c-total" role="img" aria-label="Gasto total anual de 2023 a 2026">2023 R$7,5M; 2024 R$8,0M; 2025 R$7,8M; 2026* R$3,2M</canvas>
+            <canvas id="c-total" role="img" aria-label="Gasto total anual de 2023 a 2026"></canvas>
           </div>
         </div>
         <div class="card">
           <div class="card-title"><span class="dot"></span>Distribuição por categoria</div>
           <div class="ch-wrap" style="height:210px">
-            <canvas id="c-donut" role="img" aria-label="Distribuição: solar 60%, não conectadas 37%, administração 3%">Solar 60%, Não conectadas 37%, Adm 3%</canvas>
+            <canvas id="c-donut" role="img" aria-label="Distribuição por categoria"></canvas>
           </div>
         </div>
       </div>
@@ -423,12 +466,11 @@ body {
           <div class="legend-item"><div class="legend-sq" style="background:#e24b4a"></div>Não conectadas</div>
         </div>
         <div class="ch-wrap" style="height:200px">
-          <canvas id="c-evolucao" role="img" aria-label="Solar cai de 4,9M para 4,6M; não conectadas sobem de 2,6M para 3,2M"></canvas>
+          <canvas id="c-evolucao" role="img" aria-label="Evolução"></canvas>
         </div>
       </div>
     </div>
 
-    <!-- ═══════════ SOLAR ═══════════ -->
     <div class="panel" id="panel-solar">
       <div class="page-title">Conectados Solar</div>
       <div class="page-sub">18 unidades com planta fotovoltaica · consumo líquido da rede</div>
@@ -465,7 +507,7 @@ body {
             <div class="legend-item"><div class="legend-sq" style="background:#3b6d11"></div>2025</div>
           </div>
           <div class="ch-wrap" style="height:280px">
-            <canvas id="c-solar-bar" role="img" aria-label="Barras horizontais das principais unidades solar por ano"></canvas>
+            <canvas id="c-solar-bar" role="img" aria-label="Barras de consumo por unidade"></canvas>
           </div>
         </div>
         <div class="card">
@@ -476,18 +518,19 @@ body {
 
       <div class="card">
         <div class="card-title"><span class="dot"></span>Classificação de desempenho solar</div>
-        <table class="tbl">
-          <thead><tr>
-            <th>Unidade</th><th>Inst.</th>
-            <th>2023 (R$)</th><th>2025 (R$)</th>
-            <th>Var 23→25</th><th>Status</th>
-          </tr></thead>
-          <tbody id="solar-tbl"></tbody>
-        </table>
+        <div class="table-responsive">
+          <table class="tbl">
+            <thead><tr>
+              <th>Unidade</th><th>Inst.</th>
+              <th>2023 (R$)</th><th>2025 (R$)</th>
+              <th>Var 23→25</th><th>Status</th>
+            </tr></thead>
+            <tbody id="solar-tbl"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <!-- ═══════════ RATEIO ═══════════ -->
     <div class="panel" id="panel-rateio">
       <div class="page-title">Rateio — Administração Albano Franco</div>
       <div class="page-sub">Crédito fotovoltaico abatendo a NF da concessionária mensalmente</div>
@@ -522,37 +565,38 @@ body {
             <div class="legend-item"><div class="legend-sq" style="background:#5dcaa5"></div>Custo líquido (pós-rateio)</div>
           </div>
           <div class="ch-wrap" style="height:220px">
-            <canvas id="c-rateio" role="img" aria-label="NF bruta entre 682k e 765k; custo líquido abaixo de 15k após rateio"></canvas>
+            <canvas id="c-rateio" role="img" aria-label="Rateio Anual"></canvas>
           </div>
         </div>
         <div class="card">
           <div class="card-title"><span class="dot"></span>Evolução do crédito de rateio (R$ k/mês · 2025)</div>
           <div class="ch-wrap" style="height:220px">
-            <canvas id="c-rateio-mensal" role="img" aria-label="Crédito mensal de rateio em 2025 entre R$50k e R$92k"></canvas>
+            <canvas id="c-rateio-mensal" role="img" aria-label="Rateio Mensal"></canvas>
           </div>
         </div>
       </div>
 
       <div class="card">
         <div class="card-title"><span class="dot"></span>Resumo financeiro rateio por ano</div>
-        <table class="tbl">
-          <thead><tr>
-            <th>Ano</th><th>NF Bruta (R$)</th>
-            <th>Crédito Rateio (R$)</th><th>Custo Líquido (R$)</th>
-            <th>% Abatimento</th><th>Crescimento crédito</th>
-          </tr></thead>
-          <tbody>
-            <tr><td>2023</td><td class="mono">(682.858)</td><td class="mono" style="color:var(--green)">746.089</td><td class="mono" style="color:var(--green)">(14.243)</td><td><span class="pil pil-g">109,3%</span></td><td class="mono">—</td></tr>
-            <tr><td>2024</td><td class="mono">(719.094)</td><td class="mono" style="color:var(--green)">788.713</td><td class="mono" style="color:var(--green)">(8.756)</td><td><span class="pil pil-g">109,7%</span></td><td><span class="pil pil-g">+5,7%</span></td></tr>
-            <tr><td>2025</td><td class="mono">(764.775)</td><td class="mono" style="color:var(--green)">806.843</td><td class="mono" style="color:var(--green)">(14.773)</td><td><span class="pil pil-g">105,5%</span></td><td><span class="pil pil-g">+8,2%</span></td></tr>
-            <tr><td>2026*</td><td class="mono">(242.974)</td><td class="mono" style="color:var(--green)">258.542</td><td class="mono" style="color:var(--green)">16.299</td><td><span class="pil pil-g">106,4%</span></td><td class="mono">parcial</td></tr>
-            <tr style="font-weight:600"><td>Total</td><td class="mono">(2.409.701)</td><td class="mono" style="color:var(--green)">2.600.187</td><td class="mono" style="color:var(--green)">(20.473)</td><td><span class="pil pil-g">107,9%</span></td><td class="mono">—</td></tr>
-          </tbody>
-        </table>
+        <div class="table-responsive">
+          <table class="tbl">
+            <thead><tr>
+              <th>Ano</th><th>NF Bruta (R$)</th>
+              <th>Crédito Rateio (R$)</th><th>Custo Líquido (R$)</th>
+              <th>% Abatimento</th><th>Crescimento crédito</th>
+            </tr></thead>
+            <tbody>
+              <tr><td>2023</td><td class="mono">(682.858)</td><td class="mono" style="color:var(--green)">746.089</td><td class="mono" style="color:var(--green)">(14.243)</td><td><span class="pil pil-g">109,3%</span></td><td class="mono">—</td></tr>
+              <tr><td>2024</td><td class="mono">(719.094)</td><td class="mono" style="color:var(--green)">788.713</td><td class="mono" style="color:var(--green)">(8.756)</td><td><span class="pil pil-g">109,7%</span></td><td><span class="pil pil-g">+5,7%</span></td></tr>
+              <tr><td>2025</td><td class="mono">(764.775)</td><td class="mono" style="color:var(--green)">806.843</td><td class="mono" style="color:var(--green)">(14.773)</td><td><span class="pil pil-g">105,5%</span></td><td><span class="pil pil-g">+8,2%</span></td></tr>
+              <tr><td>2026*</td><td class="mono">(242.974)</td><td class="mono" style="color:var(--green)">258.542</td><td class="mono" style="color:var(--green)">16.299</td><td><span class="pil pil-g">106,4%</span></td><td class="mono">parcial</td></tr>
+              <tr style="font-weight:600"><td>Total</td><td class="mono">(2.409.701)</td><td class="mono" style="color:var(--green)">2.600.187</td><td class="mono" style="color:var(--green)">(20.473)</td><td><span class="pil pil-g">107,9%</span></td><td class="mono">—</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <!-- ═══════════ NÃO CONECTADAS ═══════════ -->
     <div class="panel" id="panel-nc">
       <div class="page-title">Não Conectadas</div>
       <div class="page-sub">14 unidades com consumo 100% da rede concessionária · crescimento de +24,7%</div>
@@ -593,25 +637,26 @@ body {
             <div class="legend-item"><div class="legend-sq" style="background:#d85a30"></div>2025</div>
           </div>
           <div class="ch-wrap" style="height:280px">
-            <canvas id="c-nc-bar" role="img" aria-label="Barras horizontais das maiores unidades não conectadas por ano"></canvas>
+            <canvas id="c-nc-bar" role="img" aria-label="Barras de maiores não conectadas"></canvas>
           </div>
         </div>
       </div>
 
       <div class="card">
         <div class="card-title"><span class="dot"></span>Análise e prioridade para solar</div>
-        <table class="tbl">
-          <thead><tr>
-            <th>Unidade</th><th>Inst.</th>
-            <th>2023 (R$)</th><th>2024 (R$)</th><th>2025 (R$)</th>
-            <th>Total</th><th>Prioridade Solar</th>
-          </tr></thead>
-          <tbody id="nc-tbl"></tbody>
-        </table>
+        <div class="table-responsive">
+          <table class="tbl">
+            <thead><tr>
+              <th>Unidade</th><th>Inst.</th>
+              <th>2023 (R$)</th><th>2024 (R$)</th><th>2025 (R$)</th>
+              <th>Total</th><th>Prioridade Solar</th>
+            </tr></thead>
+            <tbody id="nc-tbl"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <!-- ═══════════ ALERTAS ═══════════ -->
     <div class="panel" id="panel-alertas">
       <div class="page-title">Alertas e Recomendações</div>
       <div class="page-sub">Pontos críticos, atenção e boas práticas identificados na análise</div>
