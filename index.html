@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Energia Elétrica — SESI &amp; SENAI 2023–2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #f5f4f0;
+  --surface: #ffffff;
+  --surface2: #f0ede8;
+  --border: #e2ddd8;
+  --text: #1a1714;
+  --muted: #7a736c;
+  --solar: #2d5a1b;
+  --solar-l: #eaf3de;
+  --rateio: #1a4480;
+  --rateio-l: #e6f0fb;
+  --nc: #8b2020;
+  --nc-l: #fdf0f0;
+  --accent: #c8a45a;
+  --green: #3b6d11;
+  --green-l: #eaf3de;
+  --red: #a32d2d;
+  --red-l: #fcebeb;
+  --amber: #854f0b;
+  --amber-l: #faeeda;
+  --r: 10px;
+  --r-lg: 16px;
+}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--text);
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+.header-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.header-logo .sep { color: var(--accent); }
+.header-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  letter-spacing: .04em;
+}
+.header-badges { display: flex; gap: 6px; }
+.hbadge {
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid;
+}
+.hbadge.solar  { color: #a8d47a; border-color: rgba(168,212,122,.4); }
+.hbadge.rateio { color: #7db8f7; border-color: rgba(125,184,247,.4); }
+.hbadge.nc     { color: #f4a29a; border-color: rgba(244,162,154,.4); }
+
+/* ── LAYOUT ── */
+.layout { display: flex; min-height: calc(100vh - 60px); }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 24px 0;
+  position: sticky;
+  top: 60px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+}
+.sidebar-section { padding: 0 16px; margin-bottom: 24px; }
+.sidebar-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  padding: 0 4px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--r);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 400;
+  transition: all .15s;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: var(--text); color: #fff; font-weight: 500; }
+.nav-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.nav-item.active .nav-dot { background: var(--accent); }
+
+.sidebar-stat {
+  background: var(--surface2);
+  border-radius: var(--r);
+  padding: 12px;
+  margin-bottom: 8px;
+}
+.ss-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+.ss-val { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; }
+.ss-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-top: 3px;
+}
+.badge-g { background: var(--green-l); color: var(--green); }
+.badge-r { background: var(--red-l); color: var(--red); }
+.badge-a { background: var(--amber-l); color: var(--amber); }
+.badge-m { background: var(--surface2); color: var(--muted); }
+
+/* ── MAIN ── */
+.main { flex: 1; padding: 28px 32px; overflow-x: hidden; }
+
+/* ── PANELS ── */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── PAGE TITLE ── */
+.page-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+}
+.page-sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+
+/* ── KPI ROW ── */
+.kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 24px; }
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.kpi::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+}
+.kpi.k-solar::after { background: var(--solar); }
+.kpi.k-rateio::after { background: var(--rateio); }
+.kpi.k-nc::after { background: var(--nc); }
+.kpi.k-accent::after { background: var(--accent); }
+.kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; font-weight: 500; }
+.kpi-val { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+.kpi-sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.kpi-sub b { font-weight: 500; }
+.kpi-sub .up { color: var(--red); font-weight: 600; }
+.kpi-sub .dn { color: var(--green); font-weight: 600; }
+
+/* ── GRID ── */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.g21 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+.g12 { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; margin-bottom: 16px; }
+
+/* ── CARD ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 20px 22px;
+}
+.card-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.card-title .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+/* ── CHART ── */
+.ch-wrap { position: relative; width: 100%; }
+
+/* ── TABLE ── */
+.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tbl th {
+  text-align: left; padding: 8px 10px;
+  color: var(--muted); font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .06em;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+.tbl td { padding: 10px 10px; border-bottom: 1px solid var(--surface2); }
+.tbl tr:last-child td { border: none; }
+.tbl tr:hover td { background: var(--surface2); }
+.tbl td:first-child { font-weight: 500; }
+.tbl .mono { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); }
+.pil {
+  display: inline-block; padding: 2px 8px;
+  border-radius: 99px; font-size: 11px; font-weight: 600;
+}
+.pil-g { background: var(--green-l); color: var(--green); }
+.pil-r { background: var(--red-l); color: var(--red); }
+.pil-a { background: var(--amber-l); color: var(--amber); }
+.pil-m { background: var(--surface2); color: var(--muted); }
+
+/* ── BAR ROWS ── */
+.brow { margin-bottom: 12px; }
+.brow-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.brow-name { font-size: 12px; font-weight: 500; }
+.brow-val { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+.brow-track { height: 6px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+.brow-fill { height: 100%; border-radius: 99px; }
+
+/* ── ALERTS ── */
+.alert {
+  display: flex; gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--r);
+  margin-bottom: 10px;
+  border-left: 3px solid;
+}
+.alert.a-r { background: var(--red-l); border-color: var(--nc); }
+.alert.a-a { background: var(--amber-l); border-color: #ef9f27; }
+.alert.a-g { background: var(--green-l); border-color: var(--solar); }
+.alert-body {}
+.alert-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+.alert.a-r .alert-title { color: var(--nc); }
+.alert.a-a .alert-title { color: var(--amber); }
+.alert.a-g .alert-title { color: var(--solar); }
+.alert-desc { font-size: 12px; color: var(--muted); line-height: 1.55; }
+.alert-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+/* ── LEGEND ── */
+.legend { display: flex; gap: 16px; margin-bottom: 10px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+.legend-sq { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── RATEIO SPECIAL ── */
+.rateio-banner {
+  background: var(--text);
+  border-radius: var(--r-lg);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.rb-label { font-size: 12px; color: rgba(255,255,255,.5); margin-bottom: 4px; }
+.rb-val { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 700; color: #fff; letter-spacing: -1px; }
+.rb-val.green { color: #a8d47a; }
+.rb-val.accent { color: var(--accent); }
+.rb-sep { width: 1px; height: 40px; background: rgba(255,255,255,.15); }
+
+/* ── MOBILE FALLBACK ── */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+  .g2,.g21,.g12 { grid-template-columns: 1fr; }
+  .main { padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-logo">
+    Sistema FIEG <span class="sep">/</span> Energia
+  </div>
+  <div class="header-badges">
+    <span class="hbadge solar">☀ 18 Solar</span>
+    <span class="hbadge rateio">↩ Rateio</span>
+    <span class="hbadge nc">⚡ 14 Não conectadas</span>
+  </div>
+  <div class="header-meta">2023 – 2026 · SESI & SENAI · Goiás</div>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Navegação</div>
+      <button class="nav-item active" onclick="go('visao')">
+        <span class="nav-dot" style="background:#c8a45a"></span>Visão Geral
+      </button>
+      <button class="nav-item" onclick="go('solar')">
+        <span class="nav-dot" style="background:#3b6d11"></span>Conectados Solar
+      </button>
+      <button class="nav-item" onclick="go('rateio')">
+        <span class="nav-dot" style="background:#1a4480"></span>Rateio
+      </button>
+      <button class="nav-item" onclick="go('nc')">
+        <span class="nav-dot" style="background:#8b2020"></span>Não Conectadas
+      </button>
+      <button class="nav-item" onclick="go('alertas')">
+        <span class="nav-dot" style="background:#ef9f27"></span>Alertas
+      </button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Resumo</div>
+      <div class="sidebar-stat">
+        <div class="ss-label">Total período</div>
+        <div class="ss-val">R$ 27,1M</div>
+        <div class="ss-badge badge-m">2023–2026</div>
+      </div>
+      <div class="sidebar-stat">
+        <div class="ss-label">Crédito rateio</div>
+        <div class="ss-val" style="color:var(--green)">R$ 2,6M</div>
+        <div class="ss-badge badge-g">economia acumulada</div>
+      </div>
+      <div class="sidebar-stat">
+        <div class="ss-label">Não conectadas 2025</div>
+        <div class="ss-val" style="color:var(--red)">R$ 3,2M</div>
+        <div class="ss-badge badge-r">+24,7% vs 2023</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ═══════════ VISÃO GERAL ═══════════ -->
+    <div class="panel active" id="panel-visao">
+      <div class="page-title">Visão Geral</div>
+      <div class="page-sub">Análise consolidada de energia elétrica · SESI + SENAI · 2023–2026 (2026: jan–mai)</div>
+
+      <div class="kpi-row">
+        <div class="kpi k-solar">
+          <div class="kpi-label">Total Período</div>
+          <div class="kpi-val">R$ 27,1M</div>
+          <div class="kpi-sub">SESI + SENAI</div>
+        </div>
+        <div class="kpi k-rateio">
+          <div class="kpi-label">Crédito Rateio Solar</div>
+          <div class="kpi-val" style="color:var(--green)">R$ 2,6M</div>
+          <div class="kpi-sub"><span class="dn">+8,2%</span> aa · crescente</div>
+        </div>
+        <div class="kpi k-nc">
+          <div class="kpi-label">Não Conectadas 2025</div>
+          <div class="kpi-val" style="color:var(--red)">R$ 3,2M</div>
+          <div class="kpi-sub"><span class="up">+24,7%</span> vs 2023</div>
+        </div>
+        <div class="kpi k-accent">
+          <div class="kpi-label">Abatimento Rateio</div>
+          <div class="kpi-val" style="color:var(--solar)">~89%</div>
+          <div class="kpi-sub">da NF bruta Albano Franco</div>
+        </div>
+      </div>
+
+      <div class="g2">
+        <div class="card">
+          <div class="card-title"><span class="dot"></span>Gasto anual consolidado (R$ M)</div>
+          <div class="ch-wrap" style="height:210px">
+            <canvas id="c-total" role="img" aria-label="Gasto total anual de 2023 a 2026">2023 R$7,5M; 2024 R$8,0M; 2025 R$7,8M; 2026* R$3,2M</canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="dot"></span>Distribuição por categoria</div>
+          <div class="ch-wrap" style="height:210px">
+            <canvas id="c-donut" role="img" aria-label="Distribuição: solar 60%, não conectadas 37%, administração 3%">Solar 60%, Não conectadas 37%, Adm 3%</canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Solar conectadas vs. não conectadas — 2023 a 2025 (R$ M)</div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-sq" style="background:#3b6d11"></div>Solar conectadas</div>
+          <div class="legend-item"><div class="legend-sq" style="background:#e24b4a"></div>Não conectadas</div>
+        </div>
+        <div class="ch-wrap" style="height:200px">
+          <canvas id="c-evolucao" role="img" aria-label="Solar cai de 4,9M para 4,6M; não conectadas sobem de 2,6M para 3,2M"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ SOLAR ═══════════ -->
+    <div class="panel" id="panel-solar">
+      <div class="page-title">Conectados Solar</div>
+      <div class="page-sub">18 unidades com planta fotovoltaica · consumo líquido da rede</div>
+
+      <div class="kpi-row">
+        <div class="kpi k-solar">
+          <div class="kpi-label">Unidades com Solar</div>
+          <div class="kpi-val">18</div>
+          <div class="kpi-sub">SESI e SENAI</div>
+        </div>
+        <div class="kpi k-solar">
+          <div class="kpi-label">Gasto líquido 2023</div>
+          <div class="kpi-val">R$ 4,9M</div>
+          <div class="kpi-sub">base pré-maturidade</div>
+        </div>
+        <div class="kpi k-solar">
+          <div class="kpi-label">Gasto líquido 2025</div>
+          <div class="kpi-val">R$ 4,6M</div>
+          <div class="kpi-sub"><span class="dn">-7,2%</span> vs 2023</div>
+        </div>
+        <div class="kpi k-accent">
+          <div class="kpi-label">Melhor desempenho</div>
+          <div class="kpi-val" style="font-size:16px">IST Automação</div>
+          <div class="kpi-sub"><span class="dn">-65%</span> 2023→2025</div>
+        </div>
+      </div>
+
+      <div class="g21">
+        <div class="card">
+          <div class="card-title"><span class="dot"></span>Consumo líquido anual — principais unidades (R$ k)</div>
+          <div class="legend">
+            <div class="legend-item"><div class="legend-sq" style="background:#c0dd97"></div>2023</div>
+            <div class="legend-item"><div class="legend-sq" style="background:#97c459"></div>2024</div>
+            <div class="legend-item"><div class="legend-sq" style="background:#3b6d11"></div>2025</div>
+          </div>
+          <div class="ch-wrap" style="height:280px">
+            <canvas id="c-solar-bar" role="img" aria-label="Barras horizontais das principais unidades solar por ano"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="dot"></span>Variação 2023→2025 por unidade</div>
+          <div id="solar-var"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Classificação de desempenho solar</div>
+        <table class="tbl">
+          <thead><tr>
+            <th>Unidade</th><th>Inst.</th>
+            <th>2023 (R$)</th><th>2025 (R$)</th>
+            <th>Var 23→25</th><th>Status</th>
+          </tr></thead>
+          <tbody id="solar-tbl"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════ RATEIO ═══════════ -->
+    <div class="panel" id="panel-rateio">
+      <div class="page-title">Rateio — Administração Albano Franco</div>
+      <div class="page-sub">Crédito fotovoltaico abatendo a NF da concessionária mensalmente</div>
+
+      <div class="rateio-banner">
+        <div>
+          <div class="rb-label">NF bruta média anual</div>
+          <div class="rb-val">R$ 722k</div>
+        </div>
+        <div class="rb-sep"></div>
+        <div>
+          <div class="rb-label">Crédito rateio médio anual</div>
+          <div class="rb-val green">R$ 786k</div>
+        </div>
+        <div class="rb-sep"></div>
+        <div>
+          <div class="rb-label">Abatimento médio</div>
+          <div class="rb-val accent">~89%</div>
+        </div>
+        <div class="rb-sep"></div>
+        <div>
+          <div class="rb-label">Crédito acumulado 2023–2026</div>
+          <div class="rb-val green">R$ 2,6M</div>
+        </div>
+      </div>
+
+      <div class="g2">
+        <div class="card">
+          <div class="card-title"><span class="dot"></span>NF bruta vs. custo líquido anual (R$ k)</div>
+          <div class="legend">
+            <div class="legend-item"><div class="legend-sq" style="background:#f09595"></div>NF bruta Albano Franco</div>
+            <div class="legend-item"><div class="legend-sq" style="background:#5dcaa5"></div>Custo líquido (pós-rateio)</div>
+          </div>
+          <div class="ch-wrap" style="height:220px">
+            <canvas id="c-rateio" role="img" aria-label="NF bruta entre 682k e 765k; custo líquido abaixo de 15k após rateio"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="dot"></span>Evolução do crédito de rateio (R$ k/mês · 2025)</div>
+          <div class="ch-wrap" style="height:220px">
+            <canvas id="c-rateio-mensal" role="img" aria-label="Crédito mensal de rateio em 2025 entre R$50k e R$92k"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Resumo financeiro rateio por ano</div>
+        <table class="tbl">
+          <thead><tr>
+            <th>Ano</th><th>NF Bruta (R$)</th>
+            <th>Crédito Rateio (R$)</th><th>Custo Líquido (R$)</th>
+            <th>% Abatimento</th><th>Crescimento crédito</th>
+          </tr></thead>
+          <tbody>
+            <tr><td>2023</td><td class="mono">(682.858)</td><td class="mono" style="color:var(--green)">746.089</td><td class="mono" style="color:var(--green)">(14.243)</td><td><span class="pil pil-g">109,3%</span></td><td class="mono">—</td></tr>
+            <tr><td>2024</td><td class="mono">(719.094)</td><td class="mono" style="color:var(--green)">788.713</td><td class="mono" style="color:var(--green)">(8.756)</td><td><span class="pil pil-g">109,7%</span></td><td><span class="pil pil-g">+5,7%</span></td></tr>
+            <tr><td>2025</td><td class="mono">(764.775)</td><td class="mono" style="color:var(--green)">806.843</td><td class="mono" style="color:var(--green)">(14.773)</td><td><span class="pil pil-g">105,5%</span></td><td><span class="pil pil-g">+8,2%</span></td></tr>
+            <tr><td>2026*</td><td class="mono">(242.974)</td><td class="mono" style="color:var(--green)">258.542</td><td class="mono" style="color:var(--green)">16.299</td><td><span class="pil pil-g">106,4%</span></td><td class="mono">parcial</td></tr>
+            <tr style="font-weight:600"><td>Total</td><td class="mono">(2.409.701)</td><td class="mono" style="color:var(--green)">2.600.187</td><td class="mono" style="color:var(--green)">(20.473)</td><td><span class="pil pil-g">107,9%</span></td><td class="mono">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════ NÃO CONECTADAS ═══════════ -->
+    <div class="panel" id="panel-nc">
+      <div class="page-title">Não Conectadas</div>
+      <div class="page-sub">14 unidades com consumo 100% da rede concessionária · crescimento de +24,7%</div>
+
+      <div class="kpi-row">
+        <div class="kpi k-nc">
+          <div class="kpi-label">Gasto 2023</div>
+          <div class="kpi-val">R$ 2,6M</div>
+          <div class="kpi-sub">base de referência</div>
+        </div>
+        <div class="kpi k-nc">
+          <div class="kpi-label">Gasto 2025</div>
+          <div class="kpi-val" style="color:var(--red)">R$ 3,2M</div>
+          <div class="kpi-sub"><span class="up">+24,7%</span> vs 2023</div>
+        </div>
+        <div class="kpi k-nc">
+          <div class="kpi-label">Maior consumidora</div>
+          <div class="kpi-val" style="font-size:15px;line-height:1.1">Clube F. Pacheco</div>
+          <div class="kpi-sub">R$ 2,5M no período</div>
+        </div>
+        <div class="kpi k-accent">
+          <div class="kpi-label">Prioridade solar alta</div>
+          <div class="kpi-val">3</div>
+          <div class="kpi-sub">unidades acima de R$1,5M</div>
+        </div>
+      </div>
+
+      <div class="g12">
+        <div class="card">
+          <div class="card-title"><span class="dot"></span>Ranking — gasto total período</div>
+          <div id="nc-rank"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="dot"></span>Maiores não conectadas por ano (R$ k)</div>
+          <div class="legend">
+            <div class="legend-item"><div class="legend-sq" style="background:#f5c4b3"></div>2023</div>
+            <div class="legend-item"><div class="legend-sq" style="background:#f0997b"></div>2024</div>
+            <div class="legend-item"><div class="legend-sq" style="background:#d85a30"></div>2025</div>
+          </div>
+          <div class="ch-wrap" style="height:280px">
+            <canvas id="c-nc-bar" role="img" aria-label="Barras horizontais das maiores unidades não conectadas por ano"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Análise e prioridade para solar</div>
+        <table class="tbl">
+          <thead><tr>
+            <th>Unidade</th><th>Inst.</th>
+            <th>2023 (R$)</th><th>2024 (R$)</th><th>2025 (R$)</th>
+            <th>Total</th><th>Prioridade Solar</th>
+          </tr></thead>
+          <tbody id="nc-tbl"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════ ALERTAS ═══════════ -->
+    <div class="panel" id="panel-alertas">
+      <div class="page-title">Alertas e Recomendações</div>
+      <div class="page-sub">Pontos críticos, atenção e boas práticas identificados na análise</div>
+
+      <div class="g2">
+        <div>
+          <div class="card-title" style="margin-bottom:12px;font-size:11px;color:var(--red);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Crítico — ação imediata</div>
+          <div class="alert a-r">
+            <div class="alert-icon">🔴</div>
+            <div class="alert-body">
+              <div class="alert-title">Clube Ferreira Pacheco — R$2,5M sem solar</div>
+              <div class="alert-desc">Maior consumidora não conectada. Média de R$68k/mês. Candidata prioritária a solar — potencial de economia de R$50–80k/ano com retorno estimado em 4–6 anos.</div>
+            </div>
+          </div>
+          <div class="alert a-r">
+            <div class="alert-icon">🔴</div>
+            <div class="alert-body">
+              <div class="alert-title">Roberto Mange — R$1,6M e sem programa de eficiência</div>
+              <div class="alert-desc">Segunda maior não conectada do SENAI. Crescimento contínuo. Avaliar implantação solar ou programa de gestão de demanda imediatamente.</div>
+            </div>
+          </div>
+          <div class="alert a-r">
+            <div class="alert-icon">🔴</div>
+            <div class="alert-body">
+              <div class="alert-title">Não conectadas cresceram +24,7% de 2023 a 2025</div>
+              <div class="alert-desc">Projeção sem intervenção: R$4,0M em 2027. Cada nova unidade solar conectada trava o crescimento dessa linha. Urgência crescente.</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card-title" style="margin-bottom:12px;font-size:11px;color:var(--amber);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Atenção — monitorar</div>
+          <div class="alert a-a">
+            <div class="alert-icon">🟠</div>
+            <div class="alert-body">
+              <div class="alert-title">Canaã, Fatesg e Ítalo Bologna — solar crescendo</div>
+              <div class="alert-desc">Têm planta solar mas o gasto líquido cresceu de 2023 a 2025. Solar possivelmente subdimensionada ou consumo superou a capacidade. Revisar dimensionamento.</div>
+            </div>
+          </div>
+          <div class="alert a-a">
+            <div class="alert-icon">🟠</div>
+            <div class="alert-body">
+              <div class="alert-title">Minaçu SESI — R$96.810 de débito acumulado em abr/2026</div>
+              <div class="alert-desc">Lançamento único referente a débitos 2024–2025 com UEG. Não recorrente, mas exige provisão mensal em contratos de comodato com consumo de energia.</div>
+            </div>
+          </div>
+          <div class="alert a-a">
+            <div class="alert-icon">🟠</div>
+            <div class="alert-body">
+              <div class="alert-title">Aruanã e Itumbiara — crescimento mesmo com solar</div>
+              <div class="alert-desc">Ambas conectadas com solar mas com trajetória de alta nos anos recentes. Avaliar se o aumento é operacional (maior uso) ou tarifário.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-title" style="margin-bottom:12px;font-size:11px;color:var(--green);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Positivo — boas práticas</div>
+      <div class="g2">
+        <div class="alert a-g">
+          <div class="alert-icon">🟢</div>
+          <div class="alert-body">
+            <div class="alert-title">Rateio Albano Franco — economia de R$2,6M acumulados</div>
+            <div class="alert-desc">O crédito cresceu de R$746k (2023) para R$807k (2025). Representa ~89% de abatimento da NF bruta. Sistema maduro e estável — modelo a replicar em outras unidades compartilhadas.</div>
+          </div>
+        </div>
+        <div class="alert a-g">
+          <div class="alert-icon">🟢</div>
+          <div class="alert-body">
+            <div class="alert-title">IST Automação e Planalto — maior retorno relativo da solar</div>
+            <div class="alert-desc">IST Automação reduziu -65% o custo de rede entre 2023 e 2025. Planalto reduziu -75%. São os melhores cases de ROI do portfólio solar atual — usar como benchmark técnico para novos projetos.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── NAVIGATION ──────────────────────────────────────────────────────────────
+function go(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  setTimeout(buildCharts, 80);
+}
+
+// ── CHART HELPERS ────────────────────────────────────────────────────────────
+const gridC = 'rgba(0,0,0,0.06)';
+const lblC  = '#7a736c';
+const tick  = { color: lblC, font: { size: 11, family: 'DM Mono' } };
+const base  = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { grid: { color: gridC }, ticks: tick, border: { color: 'transparent' } },
+    y: { grid: { color: gridC }, ticks: tick, border: { color: 'transparent' } }
+  }
+};
+const fmtM = v => 'R$' + Math.abs(v / 1e6).toFixed(1) + 'M';
+const fmtK = v => 'R$' + Math.abs(v / 1e3).toFixed(0) + 'k';
+
+let built = {};
+function buildCharts() {
+  // ── VISÃO GERAL ────────────────────────────────────────────────────────────
+  if (!built['total'] && document.getElementById('panel-visao').classList.contains('active')) {
+    built['total'] = true;
+
+    new Chart(document.getElementById('c-total'), {
+      type: 'bar',
+      data: {
+        labels: ['2023','2024','2025','2026*'],
+        datasets: [{
+          data: [-7503356,-8003354,-7761488,-3224904],
+          backgroundColor: ['#b5d4f4','#85b7eb','#378add','#b5d4f4'],
+          borderRadius: 5
+        }]
+      },
+      options: { ...base,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + fmtM(Math.abs(c.raw)) } } },
+        scales: { ...base.scales, y: { ...base.scales.y, ticks: { ...tick, callback: v => fmtM(Math.abs(v)) } } }
+      }
+    });
+
+    new Chart(document.getElementById('c-donut'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Solar conectadas','Não conectadas','Administração'],
+        datasets: [{
+          data: [16412196, 10081756, 212668],
+          backgroundColor: ['#3b6d11','#e24b4a','#c8a45a'],
+          borderColor: '#fff', borderWidth: 3, hoverOffset: 6
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '66%',
+        plugins: {
+          legend: {
+            display: true, position: 'right',
+            labels: { font: { size: 11, family: 'DM Sans' }, color: lblC, boxWidth: 9, padding: 12 }
+          },
+          tooltip: { callbacks: { label: c => ' ' + fmtM(c.raw) + ' (' + Math.round(c.parsed / c.dataset.data.reduce((a,b)=>a+b,0)*100) + '%)' } }
+        }
+      }
+    });
+
+    new Chart(document.getElementById('c-evolucao'), {
+      type: 'line',
+      data: {
+        labels: ['2023','2024','2025'],
+        datasets: [
+          { label: 'Solar', data: [-4938726,-5226501,-4563736].map(v=>Math.abs(v)/1e6),
+            borderColor:'#3b6d11', backgroundColor:'rgba(59,109,17,.07)',
+            fill:true, tension:.3, borderWidth:2.5, pointRadius:5, pointBackgroundColor:'#3b6d11' },
+          { label: 'Não conectadas', data: [-2564630,-2776854,-3197752].map(v=>Math.abs(v)/1e6),
+            borderColor:'#e24b4a', backgroundColor:'rgba(226,75,74,.07)',
+            fill:true, tension:.3, borderWidth:2.5, pointRadius:5, pointBackgroundColor:'#e24b4a',
+            borderDash: [5,4] }
+        ]
+      },
+      options: { responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>' R$'+c.parsed.y.toFixed(2)+'M'}} },
+        scales:{
+          x:{ grid:{color:gridC}, ticks:tick, border:{color:'transparent'} },
+          y:{ grid:{color:gridC}, ticks:{...tick, callback:v=>'R$'+v+'M'}, border:{color:'transparent'} }
+        }
+      }
+    });
+  }
+
+  // ── SOLAR ─────────────────────────────────────────────────────────────────
+  if (!built['solar'] && document.getElementById('panel-solar').classList.contains('active')) {
+    built['solar'] = true;
+
+    const su = ['Itumbiara','Canaã','Administração','Aparecida','Aruanã','Catalão','Ítalo Bologna','IST Alimentos','Fatesg','Planalto'];
+    const s23 = [563797,394353,714511,317429,398032,422388,421085,288467,270591,319882];
+    const s24 = [662445,405832,790360,341849,422348,484625,433882,316735,243743,277816];
+    const s25 = [626184,366871,812361,350373,446508,357817,192412,392711,184274,79267];
+
+    new Chart(document.getElementById('c-solar-bar'), {
+      type: 'bar', indexAxis: 'y',
+      data: { labels: su,
+        datasets: [
+          { label:'2023', data:s23.map(v=>-v), backgroundColor:'#c0dd97', borderRadius:2 },
+          { label:'2024', data:s24.map(v=>-v), backgroundColor:'#97c459', borderRadius:2 },
+          { label:'2025', data:s25.map(v=>-v), backgroundColor:'#3b6d11', borderRadius:2 }
+        ]
+      },
+      options: { responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>' '+fmtK(Math.abs(c.raw))}}},
+        scales:{
+          x:{grid:{color:gridC},ticks:{...tick,callback:v=>fmtK(Math.abs(v))},border:{color:'transparent'}},
+          y:{grid:{display:false},ticks:{...tick,font:{size:11,family:'DM Sans'}},border:{color:'transparent'}}
+        }
+      }
+    });
+
+    // Var list
+    const varData = [
+      {u:'IST Automação', v23:50118, v25:17467},
+      {u:'Planalto',      v23:319882,v25:79267},
+      {u:'Ítalo Bologna', v23:421085,v25:192412},
+      {u:'Charuri',       v23:172252,v25:92166},
+      {u:'Fatesg',        v23:270591,v25:184274},
+      {u:'Catalão',       v23:422388,v25:357817},
+      {u:'Canaã',         v23:394353,v25:366871},
+      {u:'Jaiara',        v23:196478,v25:226880},
+      {u:'Aruanã',        v23:398032,v25:446508},
+      {u:'Itumbiara',     v23:563797,v25:626184},
+    ];
+    const maxV = Math.max(...varData.map(d=>Math.max(d.v23,d.v25)));
+    const vl = document.getElementById('solar-var');
+    varData.forEach(d => {
+      const pct = d.v23>0 ? Math.round((d.v25-d.v23)/d.v23*100) : 0;
+      const down = pct < 0;
+      const col = down ? '#3b6d11' : '#e24b4a';
+      const badge = down
+        ? `<span class="pil pil-g">${pct}%</span>`
+        : `<span class="pil pil-r">+${pct}%</span>`;
+      vl.innerHTML += `<div class="brow">
+        <div class="brow-hdr"><span class="brow-name">${d.u}</span>${badge}</div>
+        <div class="brow-track"><div class="brow-fill" style="width:${Math.round(d.v25/maxV*100)}%;background:${col}"></div></div>
+      </div>`;
+    });
+
+    // Table
+    const solarTblData = [
+      ['Itumbiara','SESI',563797,626184,11],['Canaã','SESI',394353,366871,-7],
+      ['Administração','SESI',714511,812361,14],['Aparecida','SESI',317429,350373,10],
+      ['Aruanã','SESI',398032,446508,12],['Catalão','SESI',422388,357817,-15],
+      ['Ítalo Bologna','SENAI',421085,192412,-54],['IST Alimentos','SENAI',288467,392711,36],
+      ['Fatesg','SENAI',270591,184274,-32],['Planalto','SESI',319882,79267,-75],
+      ['Jaiara','SESI',196478,226880,15],['Charuri','SENAI',172252,92166,-46],
+      ['IST Automação','SENAI',50118,17467,-65],['UniDigital','SENAI',0,0,0],
+    ];
+    const tbody = document.getElementById('solar-tbl');
+    solarTblData.forEach(([u,inst,v23,v25,pct]) => {
+      const badge = pct < -10 ? `<span class="pil pil-g">${pct}%</span>`
+                  : pct > 10  ? `<span class="pil pil-r">+${pct}%</span>`
+                               : `<span class="pil pil-m">${pct}%</span>`;
+      const status = pct < -10 ? '<span class="pil pil-g">Reduzindo ✓</span>'
+                   : pct > 10  ? '<span class="pil pil-r">Crescendo !</span>'
+                                : '<span class="pil pil-m">Estável</span>';
+      tbody.innerHTML += `<tr>
+        <td>${u}</td><td><span class="pil pil-m">${inst}</span></td>
+        <td class="mono">(${(v23/1e3).toFixed(0)}k)</td>
+        <td class="mono">(${(v25/1e3).toFixed(0)}k)</td>
+        <td>${badge}</td><td>${status}</td>
+      </tr>`;
+    });
+  }
+
+  // ── RATEIO ─────────────────────────────────────────────────────────────────
+  if (!built['rateio'] && document.getElementById('panel-rateio').classList.contains('active')) {
+    built['rateio'] = true;
+
+    new Chart(document.getElementById('c-rateio'), {
+      type: 'bar',
+      data: {
+        labels: ['2023','2024','2025','2026*'],
+        datasets: [
+          { label:'NF bruta', data:[-682858,-719094,-764775,-242974], backgroundColor:'#f09595', borderRadius:4 },
+          { label:'Custo líquido', data:[-14243,-8756,-14773,16299], backgroundColor:'#5dcaa5', borderRadius:4 }
+        ]
+      },
+      options: { responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>' '+fmtK(Math.abs(c.raw))}} },
+        scales:{
+          x:{grid:{color:gridC},ticks:tick,border:{color:'transparent'}},
+          y:{grid:{color:gridC},ticks:{...tick,callback:v=>fmtK(Math.abs(v))},border:{color:'transparent'}}
+        }
+      }
+    });
+
+    const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const nf25=[-63684,-64002,-63172,-68707,-68817,-62238,-55542,-49856,-63865,-80543,-85524,-80894];
+    const cr25=[63684,64002,63172,68707,68817,62238,55542,49856,63865,80543,85524,80894];
+    new Chart(document.getElementById('c-rateio-mensal'), {
+      type: 'bar',
+      data: {
+        labels: meses,
+        datasets: [
+          { label:'NF bruta', data:nf25, backgroundColor:'#f09595', borderRadius:3 },
+          { label:'Crédito', data:cr25, backgroundColor:'#5dcaa5', borderRadius:3 }
+        ]
+      },
+      options: { responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>' R$'+Math.abs(c.raw).toLocaleString('pt-BR',{maximumFractionDigits:0})}} },
+        scales:{
+          x:{grid:{color:gridC},ticks:{...tick,autoSkip:false,maxRotation:0},border:{color:'transparent'}},
+          y:{grid:{color:gridC},ticks:{...tick,callback:v=>fmtK(Math.abs(v))},border:{color:'transparent'}}
+        }
+      }
+    });
+  }
+
+  // ── NÃO CONECTADAS ─────────────────────────────────────────────────────────
+  if (!built['nc'] && document.getElementById('panel-nc').classList.contains('active')) {
+    built['nc'] = true;
+
+    const ncD = [
+      {u:'Clube F. Pacheco',inst:'SESI',t:2500133,y:[688364,665297,785355,361117],p:'Alta'},
+      {u:'Roberto Mange',   inst:'SENAI',t:1618715,y:[480549,496367,478839,162959],p:'Alta'},
+      {u:'Rio Verde',       inst:'SENAI',t:1167688,y:[231485,369036,361662,205504],p:'Alta'},
+      {u:'Canaã',           inst:'SENAI',t:1087756,y:[426188,396290,472989,194278],p:'Média-Alta'},
+      {u:'Niquelândia',     inst:'SESI', t:773246, y:[262201,244510,206310,60225], p:'Alta'},
+      {u:'Teatro',          inst:'SESI', t:688761, y:[163897,181634,235554,107676],p:'Média'},
+      {u:'Campinas',        inst:'SESI', t:511758, y:[156743,220671,105670,28673], p:'Média'},
+      {u:'Luziânia',        inst:'SESI', t:433228, y:[0,0,331954,101274],          p:'Média'},
+      {u:'Minaçu',          inst:'SESI', t:478142, y:[105809,106764,85894,179675], p:'Média'},
+      {u:'Mineiros',        inst:'SESI', t:263056, y:[49394,63821,109261,40581],   p:'Baixa'},
+    ];
+
+    // Ranking
+    const maxT = ncD[0].t;
+    const nr = document.getElementById('nc-rank');
+    ncD.slice(0,8).forEach((d,i) => {
+      const pc = {Alta:'pil-r','Média-Alta':'pil-a',Média:'pil-a',Baixa:'pil-g'};
+      nr.innerHTML += `<div class="brow">
+        <div class="brow-hdr">
+          <span class="brow-name">${i+1}. ${d.u} <span style="font-size:10px;font-weight:400;color:var(--muted)">${d.inst}</span></span>
+          <span class="pil ${pc[d.p]}" style="font-size:10px">${d.p}</span>
+        </div>
+        <div class="brow-hdr" style="margin-top:2px;margin-bottom:4px">
+          <span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">R$ ${(d.t/1e6).toFixed(2)}M</span>
+        </div>
+        <div class="brow-track"><div class="brow-fill" style="width:${Math.round(d.t/maxT*100)}%;background:var(--nc)"></div></div>
+      </div>`;
+    });
+
+    // Bar chart top 5
+    const top5 = ncD.slice(0,5);
+    new Chart(document.getElementById('c-nc-bar'), {
+      type:'bar', indexAxis:'y',
+      data:{ labels:top5.map(d=>d.u),
+        datasets:[
+          {label:'2023',data:top5.map(d=>-d.y[0]),backgroundColor:'#f5c4b3',borderRadius:2},
+          {label:'2024',data:top5.map(d=>-d.y[1]),backgroundColor:'#f0997b',borderRadius:2},
+          {label:'2025',data:top5.map(d=>-d.y[2]),backgroundColor:'#d85a30',borderRadius:2}
+        ]},
+      options:{ responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+fmtK(Math.abs(c.raw))}}},
+        scales:{
+          x:{grid:{color:gridC},ticks:{...tick,callback:v=>fmtK(Math.abs(v))},border:{color:'transparent'}},
+          y:{grid:{display:false},ticks:{...tick,font:{size:11,family:'DM Sans'}},border:{color:'transparent'}}
+        }
+      }
+    });
+
+    // Table
+    const tb = document.getElementById('nc-tbl');
+    ncD.forEach(d => {
+      const pc={'Alta':'pil-r','Média-Alta':'pil-a','Média':'pil-a','Baixa':'pil-g'};
+      tb.innerHTML += `<tr>
+        <td>${d.u}</td>
+        <td><span class="pil pil-m">${d.inst}</span></td>
+        <td class="mono">(${(d.y[0]/1e3).toFixed(0)}k)</td>
+        <td class="mono">(${(d.y[1]/1e3).toFixed(0)}k)</td>
+        <td class="mono">(${(d.y[2]/1e3).toFixed(0)}k)</td>
+        <td class="mono" style="font-weight:600">(${(d.t/1e6).toFixed(2)}M)</td>
+        <td><span class="pil ${pc[d.p]}">${d.p}</span></td>
+      </tr>`;
+    });
+  }
+}
+
+buildCharts();
+</script>
+</body>
+</html>
